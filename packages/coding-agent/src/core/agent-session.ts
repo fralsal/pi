@@ -2613,6 +2613,7 @@ export class AgentSession {
 				setThinkingLevel: (level) => this.setThinkingLevel(level),
 			},
 			{
+				getAgent: () => this.agent,
 				getModel: () => this.model,
 				getScopedModels: () => this._scopedModels,
 				isIdle: () => this.isIdle,

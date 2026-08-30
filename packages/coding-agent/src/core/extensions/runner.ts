@@ -2,7 +2,7 @@
  * Extension runner - executes extensions and manages their lifecycle.
  */
 
-import type { AgentMessage } from "@earendil-works/pi-agent-core";
+import type { Agent, AgentMessage } from "@earendil-works/pi-agent-core";
 import type { ImageContent, Model, Provider, ProviderHeaders } from "@earendil-works/pi-ai";
 import type { KeyId } from "@earendil-works/pi-tui";
 import { type Theme, theme } from "../../modes/interactive/theme/theme.ts";
@@ -275,6 +275,7 @@ export class ExtensionRunner {
 	private sessionManager: SessionManager;
 	private modelRegistry: ModelRegistry;
 	private errorListeners: Set<ExtensionErrorListener> = new Set();
+	private getAgentFn!: () => Agent;
 	private getModel: () => Model<any> | undefined = () => undefined;
 	private getScopedModels: () => readonly ScopedModel[] = () => [];
 	private isIdleFn: () => boolean = () => true;
@@ -340,6 +341,7 @@ export class ExtensionRunner {
 		this.runtime.setThinkingLevel = actions.setThinkingLevel;
 
 		// Context actions (required)
+		this.getAgentFn = contextActions.getAgent;
 		this.getModel = contextActions.getModel;
 		this.getScopedModels = contextActions.getScopedModels;
 		this.isIdleFn = contextActions.isIdle;
@@ -725,6 +727,10 @@ export class ExtensionRunner {
 		const getModel = this.getModel;
 		const getScopedModels = this.getScopedModels;
 		return {
+			unstable_getAgent: () => {
+				runner.assertActive();
+				return runner.getAgentFn();
+			},
 			get ui() {
 				runner.assertActive();
 				return runner.uiContext;

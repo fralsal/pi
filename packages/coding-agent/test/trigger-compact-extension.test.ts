@@ -1,9 +1,11 @@
+import type { Agent } from "@earendil-works/pi-agent-core";
 import { describe, expect, test, vi } from "vitest";
 import triggerCompactExtension from "../examples/extensions/trigger-compact.ts";
 import type { ExtensionAPI, ExtensionCommandContext, ExtensionContext } from "../src/core/extensions/index.ts";
 
 function createContext(tokens: number | null, compact = vi.fn()): ExtensionContext {
 	return {
+		unstable_getAgent: () => ({}) as Agent,
 		mode: "print",
 		hasUI: false,
 		ui: {} as ExtensionContext["ui"],
