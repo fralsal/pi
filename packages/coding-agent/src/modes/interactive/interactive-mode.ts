@@ -2081,6 +2081,7 @@ export class InteractiveMode {
 
 		// Create a context for shortcut handlers
 		const createContext = (): ExtensionContext => ({
+			unstable_getAgent: () => this.session.agent,
 			ui: this.createExtensionUIContext(),
 			mode: "tui",
 			hasUI: true,

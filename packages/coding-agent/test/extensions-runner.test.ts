@@ -1,4 +1,5 @@
 import { createInMemoryModelRegistry } from "./model-runtime-test-utils.ts";
+
 /**
  * Tests for ExtensionRunner - conflict detection, error handling, tool wrapping.
  */
@@ -6,6 +7,7 @@ import { createInMemoryModelRegistry } from "./model-runtime-test-utils.ts";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import type { Agent } from "@earendil-works/pi-agent-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthStorage } from "../src/core/auth-storage.ts";
 import { createExtensionRuntime, discoverAndLoadExtensions, loadExtensions } from "../src/core/extensions/loader.ts";
@@ -27,6 +29,7 @@ describe("ExtensionRunner", () => {
 	let sessionManager: SessionManager;
 	let modelRegistry: ModelRegistry;
 	const defaultKeybindings = new KeybindingsManager().getEffectiveConfig();
+	const parentAgent = {} as Agent;
 
 	beforeEach(async () => {
 		tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "pi-runner-test-"));
@@ -89,6 +92,7 @@ describe("ExtensionRunner", () => {
 	};
 
 	const extensionContextActions: ExtensionContextActions = {
+		getAgent: () => parentAgent,
 		getModel: () => undefined,
 		isIdle: () => true,
 		isProjectTrusted: () => true,
@@ -501,6 +505,14 @@ describe("ExtensionRunner", () => {
 	});
 
 	describe("context creation", () => {
+		it("returns the exact bound agent from unstable_getAgent", async () => {
+			const result = await discoverAndLoadExtensions([], tempDir, tempDir);
+			const runner = new ExtensionRunner(result.extensions, result.runtime, tempDir, sessionManager, modelRegistry);
+			runner.bindCore(extensionActions, extensionContextActions);
+
+			expect(runner.createContext().unstable_getAgent()).toBe(parentAgent);
+		});
+
 		it("exposes the current abort signal on ExtensionContext", async () => {
 			const result = await discoverAndLoadExtensions([], tempDir, tempDir);
 			const runner = new ExtensionRunner(result.extensions, result.runtime, tempDir, sessionManager, modelRegistry);
